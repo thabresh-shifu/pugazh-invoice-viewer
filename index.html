@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<!--
+  Standalone "view invoice" page the salesman app's invoice PDF QR points to
+  (see lib/printing/invoice_viewer_config.dart). Deploy this one file as-is
+  to any free static host -- GitHub Pages, Cloudflare Pages, Vercel, Netlify
+  all work -- then update invoiceViewerBaseUrl in that Dart file to wherever
+  it ends up (e.g. https://<you>.github.io/invoice.html).
+
+  Deliberately a single dependency-free HTML file, not a build step or a
+  storage upload: it reads the order fresh from Supabase (via the
+  get-invoice Edge Function) every time it's opened, so it always shows the
+  current invoice with zero ongoing storage/hosting cost.
+
+  Mirrors the PDF's own layout column-for-column (see
+  lib/printing/invoice_pdf.dart) -- same line-item columns, same GST-slab
+  breakup box, same totals -- so scanning the QR shows the same invoice the
+  PDF printed, not a stripped-down summary of it. The get-invoice function
+  computes rate/netRate/amount/gstBreakup with the exact same math as
+  invoice_pdf.dart / order_totals.dart, so the numbers match exactly.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Invoice</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 0; padding: 16px; background: #f4f2f8; color: #221830; }
+  .card { max-width: 860px; margin: 0 auto; background: #fff; border-radius: 12px; padding: 22px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+  .letterhead { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+  .shop h1 { font-size: 16px; margin: 0 0 3px; }
+  .shop .line { font-size: 11px; color: #6b6478; }
+  .bill { text-align: right; }
+  .bill .tax-invoice { font-size: 11px; font-weight: 800; letter-spacing: 0.5px; }
+  .bill .to { font-size: 12px; font-weight: 700; margin-top: 4px; }
+  .bill .line { font-size: 11px; color: #6b6478; }
+  hr { border: none; border-top: 1px solid #e4e0ec; margin: 12px 0; }
+  .meta-row { display: flex; justify-content: space-between; font-size: 11.5px; margin-bottom: 10px; }
+  table { width: 100%; border-collapse: collapse; font-size: 11px; background: #fff; }
+  th, td { text-align: left; padding: 5px 4px; border-bottom: 1px solid #eee; white-space: nowrap; }
+  th { color: #6b6478; font-weight: 700; font-size: 9.5px; text-transform: uppercase; background: #f7f5fa; }
+  td.num, th.num { text-align: right; }
+  /* The 11-column item table is wider than the card on narrow screens --
+     without this, the overflow past the card's right edge shows the
+     page's lavender background instead of white. Scrolling (not
+     shrinking) keeps every column legible instead of squeezing them. */
+  .items { margin-top: 14px; overflow-x: auto; background: #fff; }
+  .items table { min-width: 720px; }
+  .bottom { display: flex; gap: 14px; margin-top: 16px; flex-wrap: wrap; align-items: flex-start; }
+  .gst-box { flex: 1 1 260px; }
+  .gst-box table th, .gst-box table td { font-size: 10.5px; }
+  .totals-box { flex: 0 0 200px; margin-left: auto; }
+  .totals-box .row { display: flex; justify-content: space-between; font-size: 12px; padding: 3px 0; }
+  .totals-box .grand { font-size: 15px; font-weight: 800; color: #5A3A80; border-top: 1px solid #e4e0ec; margin-top: 4px; padding-top: 6px; }
+  .qty-line { font-size: 11.5px; color: #6b6478; margin-top: 8px; }
+  .state { text-align: center; padding: 40px 16px; color: #6b6478; }
+  .footer { margin-top: 18px; display: flex; justify-content: space-between; font-size: 9.5px; color: #9a94a8; }
+  button { margin-top: 18px; background: #5A3A80; color: #fff; border: none; border-radius: 8px; padding: 10px 18px; font-size: 13px; cursor: pointer; }
+  @media print { button { display: none; } body { background: #fff; padding: 0; } .card { box-shadow: none; } }
+</style>
+</head>
+<body>
+  <div class="card" id="card">
+    <div class="state" id="state">Loading invoice…</div>
+  </div>
+
+<script>
+  // >>> EDIT THESE PER AGENCY (this static page has no build step; each
+  // agency hosts its own copy). SUPABASE_* and SHOP_* must match that
+  // agency's app build flags (lib/config/app_brand.dart). <<<
+  // Same project the app talks to -- lib/sync/supabase_config.dart. The
+  // publishable/anon key is meant to be public; it carries no access beyond
+  // what RLS allows, and this page's Edge Function call doesn't rely on RLS
+  // at all (see supabase/functions/get-invoice/index.ts).
+  const SUPABASE_URL = 'https://iuwrkvbyvlmshskyuxnu.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable___jvzX6InpQUFKLFX3FKxA_Acxyo2CO';
+
+  // Matches the constants at the top of lib/printing/invoice_pdf.dart --
+  // kept in sync by hand since this page has no build step to share them.
+  const SHOP_NAME = 'PUGAZH AGENCY';
+  const SHOP_ADDRESS = '';
+  const SHOP_MOBILE = '';
+  const SHOP_GSTIN = '';
+  const POWERED_BY = 'Zline Technologies - 7867976727';
+
+  const money = (v) => Number(v || 0).toFixed(2);
+  const esc = (s) => String(s ?? '').replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+
+  async function load() {
+    const orderId = new URLSearchParams(location.search).get('order');
+    const state = document.getElementById('state');
+    if (!orderId) {
+      state.textContent = 'No invoice specified.';
+      return;
+    }
+    try {
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/get-invoice?order_id=${encodeURIComponent(orderId)}`, {
+        headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        state.textContent = data.error || 'Could not load this invoice.';
+        return;
+      }
+      render(data);
+    } catch (e) {
+      state.textContent = 'Could not load this invoice. Check your connection and try again.';
+    }
+  }
+
+  function render(data) {
+    const { order, customer, salesman, lines, gstBreakup } = data;
+    const billNo = `ORD-${order.id.slice(0, 6).toUpperCase()}`;
+
+    const itemRows = lines.map((l, i) => `
+      <tr>
+        <td>${i + 1}</td>
+        <td>${esc(l.productName)}</td>
+        <td>${esc(l.hsnCode)}</td>
+        <td class="num">${money(l.mrp)}</td>
+        <td class="num">${Number(l.qty) === Math.round(Number(l.qty)) ? Number(l.qty) : Number(l.qty).toFixed(2)} ${esc(l.unit)}</td>
+        <td class="num">${money(l.rate)}</td>
+        <td class="num">${Number(l.discount_pct ?? 0).toFixed(2)}</td>
+        <td class="num">${money(l.taxableAmount)}</td>
+        <td class="num">${Number(l.gst_pct ?? 0).toFixed(0)}%</td>
+        <td class="num">${money(l.netRate)}</td>
+        <td class="num">${money(l.amount)}</td>
+      </tr>`).join('');
+
+    const gstRows = gstBreakup.map((g) => `
+      <tr>
+        <td>${g.slab}%</td>
+        <td class="num">${money(g.taxable)}</td>
+        <td class="num">${money(g.cgst)}</td>
+        <td class="num">${money(g.sgst)}</td>
+      </tr>`).join('');
+    const gstTotal = gstBreakup.reduce((s, g) => ({ taxable: s.taxable + g.taxable, cgst: s.cgst + g.cgst, sgst: s.sgst + g.sgst }), { taxable: 0, cgst: 0, sgst: 0 });
+
+    const totalQty = order.totalQty;
+
+    document.getElementById('card').innerHTML = `
+      <div class="letterhead">
+        <div class="shop">
+          <h1>${SHOP_NAME}</h1>
+          <div class="line">${SHOP_ADDRESS}</div>
+          <div class="line">${SHOP_MOBILE}</div>
+          <div class="line">${SHOP_GSTIN}</div>
+        </div>
+        <div class="bill">
+          <div class="tax-invoice">TAX INVOICE</div>
+          <div class="to">To: M/s. ${esc(customer?.name)}</div>
+          ${customer?.place ? `<div class="line">${esc(customer.place)}</div>` : ''}
+          <div class="line">Cell: ${esc(customer?.phone)}&nbsp;&nbsp;&nbsp;GST: ${esc(customer?.gst_number)}</div>
+        </div>
+      </div>
+      <hr />
+      <div class="meta-row">
+        <div>Bill No. : ${billNo}</div>
+        <div>Date: ${esc(order.date)}${salesman?.name ? ' · Salesman: ' + esc(salesman.name) : ''}</div>
+      </div>
+      <div class="items">
+        <table>
+          <thead><tr>
+            <th>No</th><th>Item Name</th><th>HSN Code</th><th class="num">MRP</th><th class="num">Qty</th>
+            <th class="num">Rate</th><th class="num">Disc.%</th><th class="num">Taxable Amount</th>
+            <th class="num">Gst%</th><th class="num">Net Rate</th><th class="num">Amount</th>
+          </tr></thead>
+          <tbody>${itemRows}</tbody>
+        </table>
+      </div>
+      <div class="qty-line">Total Qty =&gt; ${Number(totalQty) === Math.round(Number(totalQty)) ? Number(totalQty) : Number(totalQty).toFixed(2)}</div>
+      <div class="bottom">
+        <div class="gst-box">
+          <table>
+            <thead><tr><th>GST</th><th class="num">Taxable Amount</th><th class="num">CGST</th><th class="num">SGST</th></tr></thead>
+            <tbody>
+              ${gstRows}
+              <tr style="font-weight:700"><td>TOTAL</td><td class="num">${money(gstTotal.taxable)}</td><td class="num">${money(gstTotal.cgst)}</td><td class="num">${money(gstTotal.sgst)}</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="totals-box">
+          <div class="row"><span>Total Amount :</span><span>${money(order.totalBeforeRounding)}</span></div>
+          <div class="row"><span>Rounded Off :</span><span>${money(order.roundOff)}</span></div>
+          <div class="row grand"><span>Net Amount :</span><span>₹${money(order.netAmount)}</span></div>
+        </div>
+      </div>
+      <div class="footer">
+        <span>${POWERED_BY}</span>
+      </div>
+      <button onclick="window.print()">Print / Save as PDF</button>
+    `;
+  }
+
+  load();
+</script>
+</body>
+</html>
