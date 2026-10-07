@@ -63,42 +63,45 @@
   body.paper { background: #e9e9e9; padding: 8px 0 24px; overflow-x: hidden; }
   #fit { transform-origin: top left; }
   .sheet { width: 794px; background: #fff; color: #000; padding: 14px 16px 12px; margin: 0 auto; font-family: Helvetica, Arial, sans-serif; font-weight: 700; box-shadow: 0 1px 6px rgba(0,0,0,.25); }
-  .sheet .taxinv { text-align: right; font-size: 10px; margin-bottom: 2px; }
+  .toprow { display: flex; align-items: center; margin-bottom: 2px; }
+  .toprow > div { flex: 1; } .toprow img.tamil { width: 80px; flex: none; position: relative; top: -5px; }
+  .toprow .taxinv { text-align: right; font-size: 10px; }
   .frame { border: 1px solid #000; display: flex; flex-direction: column; }
-  .lh { display: flex; border-bottom: 1px solid #000; min-height: 92px; }
+  .lh { display: flex; border-bottom: 1px solid #000; height: 68px; overflow: hidden; }
   .lh .shopc { flex: 1; border-right: 1px solid #000; padding: 5px; display: flex; gap: 6px; }
-  .lh .shopc img.logo { width: 64px; height: 64px; object-fit: contain; }
+  .lh .shopc img.logo { width: 54px; height: 54px; object-fit: contain; }
   .lh .shopc img.tamil { width: 95px; display: block; }
-  .lh .shopname { font-size: 16px; line-height: 1.15; }
-  .lh .t10 { font-size: 10px; line-height: 1.25; }
+  .lh .shopname { font-size: 14px; line-height: 1.15; }
+  .lh .t10 { font-size: 9px; line-height: 1.25; }
   .lh .t105 { font-size: 10.5px; line-height: 1.25; }
   .lh .custc { flex: 1; padding: 5px; }
   .lh .custc .nm { font-size: 11px; }
   .lh .custc .ad { font-size: 9.5px; }
   .cashbill { font-size: 18px; align-self: center; }
-  .billrow { display: flex; border-bottom: 1px solid #000; padding: 3px 5px; font-size: 11px; }
-  .billrow div { flex: 1; } .billrow div.mid { flex: 0 0 auto; }
+  .billrow { display: flex; border-bottom: 1px solid #000; padding: 2px 5px; font-size: 10.5px; }
+  .billrow div { flex: 1; } .billrow div.mid { flex: 0 0 auto; } .billrow div.area { text-align: right; }
   table.it { border-collapse: collapse; width: 100%; table-layout: fixed; font-size: 10px; }
-  table.it th { height: 24px; font-size: 9px; line-height: 1.1; border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 0 3px; font-weight: 700; background: #fff; text-transform: none; color: #000; white-space: normal; }
-  table.it td { height: 13.5px; padding: 0 3px; white-space: nowrap; overflow: hidden; border-bottom: none; font-size: 10px; }
+  table.it th { height: 22px; font-size: 9px; line-height: 1.1; border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 0 3px; font-weight: 700; background: #fff; text-transform: none; color: #000; white-space: normal; }
+  table.it td { height: 12px; padding: 0 3px; white-space: nowrap; overflow: hidden; border-bottom: none; font-size: 9.5px; }
   table.it th, table.it td { border-left: none; border-right: 1px solid #000; }
   table.it th:last-child, table.it td:last-child { border-right: none; }
   table.it td.fill { height: 100%; padding: 0; }
   table.it tr.spacer td { height: auto; }
   .c { text-align: center; } .r { text-align: right; } .l { text-align: left; }
-  .wordsrow { display: flex; border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 3px 5px; font-size: 10px; }
-  .wordsrow .w { flex: 1; }
+  .wordsrow { border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 2px 5px; font-size: 9.5px; }
+  .wordsrow .wr2 { display: flex; margin-top: 2px; } .wordsrow .wr2 span { flex: 1; }
   .foot { display: flex; align-items: flex-start; padding: 3px 4px 2px; gap: 6px; }
   table.gb { border-collapse: collapse; width: 150px; font-size: 8px; }
   table.gb th, table.gb td { border: 0.7px solid #000; padding: 1.5px 2px; background: #fff; color: #000; font-size: 8px; text-transform: none; white-space: nowrap; }
-  .box { border: 0.7px solid #000; height: 62px; padding: 3px; font-size: 7.5px; }
+  .box { border: 0.7px solid #000; height: 68px; padding: 3px; font-size: 7.5px; }
   .box .bt { text-align: center; font-size: 8px; text-decoration: underline; margin-bottom: 2px; }
   .box.upi { width: 76px; font-size: 8px; display: flex; flex-direction: column; justify-content: space-between; }
-  .box.upi .qr svg, .box.upi .qr img { width: 44px; height: 44px; display: block; }
-  .forname { flex: 1; height: 62px; display: flex; align-items: flex-end; justify-content: center; font-size: 10px; }
-  .tot { width: 155px; font-size: 9.5px; }
-  .tot .tr { display: flex; justify-content: space-between; padding: 1px 0; }
-  .tot .net { font-size: 11.5px; border-top: 0.6px solid #000; margin-top: 2px; padding-top: 2px; }
+  .box.upi .qr svg, .box.upi .qr img { width: 40px; height: 40px; display: block; }
+  .sp { flex: 1; }
+  .totbox { width: 190px; height: 68px; border: 0.7px solid #000; display: flex; flex-direction: column; font-size: 8.5px; }
+  .totbox .tt { padding: 1px 5px; border-bottom: 0.7px solid #000; } .totbox .tt.net { font-size: 11px; padding: 1px 5px; }
+  .totbox .tr { display: flex; justify-content: space-between; padding: 0.5px 0; }
+  .totbox .sig { flex: 1; padding: 1px 5px; display: flex; flex-direction: column; justify-content: space-between; text-align: center; font-size: 8.5px; } .totbox .sig .s2 { font-size: 7px; }
   .pw { display: flex; justify-content: space-between; font-size: 7px; margin-top: 2px; }
   .actions { text-align: center; margin: 14px 0 0; }
   .actions a.pay { display: inline-block; background: #5A3A80; color: #fff; text-decoration: none; border-radius: 8px; padding: 10px 18px; font-size: 14px; margin: 0 6px; }
@@ -148,29 +151,27 @@
     document.body.classList.add('paper');
     const gst = sn.isGstBill !== false;
     const lines = sn.lines || [];
-    const totalFree = lines.reduce((s, l) => s + Number(l.free || 0), 0);
-    const totalQty = lines.reduce((s, l) => s + Number(l.qty || 0), 0);
+    const totalQty = sn.totalQty ?? lines.reduce((s, l) => s + Number(l.qty || 0), 0);
+    const totalFree = sn.totalFree ?? lines.reduce((s, l) => s + Number(l.free || 0), 0);
 
+    // Same columns, order and widths as the printed bill (buildBillPdf).
     const cols = [
-      ['No', 5, 'c'], ['Item Name', 32, 'l'], ['HSN<br>Code', 11, 'c'], ['MRP', 9, 'r'], ['Qty', 7, 'c'],
-      ...(totalFree > 0 ? [['Free', 7, 'c']] : []),
-      ['Price', 10, 'r'], ['Disc.<br>%', 7, 'r'], ['Disc', 8, 'r'], ['C.Disc<br>%', 9, 'r'], ['C.Damt', 11, 'r'],
+      ['No', 5, 'c'], ['Item Name', 25, 'l'], ['HSN<br>Code', 14, 'c'], ['MRP', 10, 'r'], ['Qty', 6, 'c'], ['Free', 6, 'c'],
+      ['Rate', 10, 'r'], ['S.Disc', 9, 'r'], ['C.Disc', 10, 'r'], ['Taxable<br>Amount', 12, 'r'],
       ...(gst ? [['GST<br>%', 6, 'c']] : []),
-      ['T.Price', 12, 'r'],
+      ['Amount', 12, 'r'], ['N.Rate', 10, 'r'],
     ];
     const sum = cols.reduce((s, c) => s + c[1], 0);
-    const nz = (v, f) => (Number(v) === 0 ? '' : f(v));
+    const nz = (v) => (Number(v || 0) === 0 ? '' : money(v));
     const rowCells = (l, i) => [
-      i + 1, esc(l.name), esc(l.hsn), money(l.mrp), qtyText(l.qty),
-      ...(totalFree > 0 ? [Number(l.free) > 0 ? qtyText(l.free) : ''] : []),
-      money(l.price), nz(l.discPct, (v) => Number(v).toFixed(2)), nz(l.discAmt, money),
-      nz(l.cDiscPct, (v) => Number(v).toFixed(2)), nz(l.cDiscAmt, money),
+      i + 1, esc(l.name), esc(l.hsn), money(l.mrp), qtyText(l.qty), Number(l.free) > 0 ? qtyText(l.free) : '',
+      money(l.rate), nz(l.discAmt), nz(l.cDiscAmt), money(l.taxable),
       ...(gst ? [Number(l.gstPct).toFixed(0)] : []),
-      money(l.taxable),
+      money(l.amount), money(l.netRate),
     ];
-    const MIN_ROWS = 10;
+    const MIN_ROWS = 12;
     const rows = lines.map((l, i) => `<tr>${rowCells(l, i).map((v, j) => `<td class="${cols[j][2]}">${v}</td>`).join('')}</tr>`).join('');
-    const blanks = Array.from({ length: Math.max(0, MIN_ROWS - lines.length) }, () => `<tr>${cols.map((c) => `<td>&nbsp;</td>`).join('')}</tr>`).join('');
+    const blanks = Array.from({ length: Math.max(0, MIN_ROWS - lines.length) }, () => `<tr>${cols.map(() => `<td>&nbsp;</td>`).join('')}</tr>`).join('');
 
     const bySlab = {};
     for (const l of lines) {
@@ -181,7 +182,7 @@
     let used = SLABS.filter((s) => (bySlab[s]?.taxable || 0) > 0);
     if (!used.length) used = [5];
     const tt = Object.values(bySlab).reduce((a, v) => ({ t: a.t + v.taxable, g: a.g + v.gst }), { t: 0, g: 0 });
-    const gstBox = gst ? `<table class="gb"><thead><tr><th class="l">GST %</th><th class="r">Taxable Amt</th><th class="r">CGST</th><th class="r">SGST</th></tr></thead><tbody>
+    const gstBox = gst ? `<table class="gb"><thead><tr><th class="l">GST %</th><th class="r">Taxable</th><th class="r">CGST</th><th class="r">SGST</th></tr></thead><tbody>
       ${used.map((s) => `<tr><td>${s}%</td><td class="r">${money(bySlab[s]?.taxable)}</td><td class="r">${money((bySlab[s]?.gst || 0) / 2)}</td><td class="r">${money((bySlab[s]?.gst || 0) / 2)}</td></tr>`).join('')}
       <tr><th class="l">TOTAL</th><th class="r">${money(tt.t)}</th><th class="r">${money(tt.g / 2)}</th><th class="r">${money(tt.g / 2)}</th></tr></tbody></table>` : '';
 
@@ -193,37 +194,42 @@
     const shopCell = gst ? `
         <img class="logo" src="assets/invoice_logo.png" alt="" onerror="this.remove()" />
         <div>
-          <img class="tamil" src="assets/invoice_header_tamil.png" alt="" onerror="this.remove()" />
           <div class="shopname">${esc(sn.shop.name)}</div>
           ${(sn.shop.addressLines || []).map((l) => `<div class="t10">${esc(l)}</div>`).join('')}
-          <div class="t105">${esc(sn.shop.mobile)}</div>
-          <div class="t105">${esc(sn.shop.gstin)}</div>
+          <div class="t10">${esc(sn.shop.mobile)}</div>
+          <div class="t10">${esc(sn.shop.gstin)}</div>
         </div>` : `<div class="cashbill">CASH BILL</div>`;
     const c = sn.customer || {};
     const custCell = `
         <div class="nm">To. M/s. ${esc(c.name)}</div>
         ${(c.addressLines || []).map((l) => `<div class="ad">${esc(l)}</div>`).join('')}
-        ${gst ? `<div class="ad" style="margin-top:2px">Cell: ${esc(c.phone)}</div><div class="ad">GST: ${esc(c.gstin)}</div>` : ''}`;
+        ${gst ? `<div class="ad">Cell: ${esc(c.phone)}</div><div class="ad">GST: ${esc(c.gstin)}</div>` : ''}`;
+
+    const sDisc = sn.sDisc ?? lines.reduce((s, l) => s + Number(l.discAmt || 0), 0);
+    const cDisc = sn.cDisc ?? lines.reduce((s, l) => s + Number(l.cDiscAmt || 0), 0);
 
     document.getElementById('card').outerHTML = `
     <div id="fit"><div class="sheet" id="sheet">
-      ${gst ? '<div class="taxinv">TAX INVOICE</div>' : ''}
+      ${gst ? `<div class="toprow"><div></div><img class="tamil" src="assets/invoice_header_tamil.png" alt="" onerror="this.remove()" /><div class="taxinv">TAX INVOICE</div></div>` : ''}
       <div class="frame">
         <div class="lh"><div class="shopc">${shopCell}</div><div class="custc">${custCell}</div></div>
-        <div class="billrow"><div>Bill No. : ${esc(sn.billNo)}</div><div class="mid">Date: ${dmy(sn.date)}</div><div></div></div>
+        <div class="billrow"><div>Bill No. : ${esc(sn.billNo)}</div><div class="mid">Date: ${dmy(sn.date)}</div><div class="area">${sn.area ? 'Area : ' + esc(sn.area) : ''}</div></div>
         <table class="it">
           <colgroup>${cols.map((c) => `<col style="width:${(c[1] / sum * 100).toFixed(3)}%">`).join('')}</colgroup>
           <thead><tr>${cols.map((c) => `<th class="${c[2]}">${c[0]}</th>`).join('')}</tr></thead>
           <tbody>${rows}${blanks}</tbody>
         </table>
-        <div class="wordsrow"><div class="w">${esc(sn.words)}</div><div>Total Qty =&gt; ${qtyText(totalQty)}${totalFree > 0 ? ' + ' + qtyText(totalFree) + ' free' : ''}</div></div>
+        <div class="wordsrow"><div>${esc(sn.words)}</div>
+          <div class="wr2"><span>Total Qty =&gt; ${qtyText(totalQty)}${Number(totalFree) > 0 ? ' + ' + qtyText(totalFree) + ' free' : ''}</span><span>S.Disc =&gt; ${nz(sDisc)}</span><span>C.Disc =&gt; ${nz(cDisc)}</span></div>
+        </div>
         <div class="foot">
           ${gstBox}${bankBox}${upiBox}
-          <div class="forname">${gst ? esc(sn.shop.footerName) : '<span style="font-size:13px">CASH BILL</span>'}</div>
-          <div class="tot">
-            <div class="tr"><span>Total Amount :</span><span>${money(sn.totalBeforeRounding)}</span></div>
-            <div class="tr"><span>Rounded Off :</span><span>${money(sn.roundOff)}</span></div>
-            <div class="tr net"><span>Net Amount :</span><span>${money(sn.netAmount)}</span></div>
+          <div class="sp"></div>
+          <div class="totbox">
+            <div class="tt"><div class="tr"><span>Total Amount :</span><span>${money(sn.totalBeforeRounding)}</span></div>
+            <div class="tr"><span>Rounded Off :</span><span>${money(sn.roundOff)}</span></div></div>
+            <div class="tt net"><div class="tr"><span>Net Amount :</span><span>${money(sn.netAmount)}</span></div></div>
+            <div class="sig"><div>${gst ? esc((sn.shop.name || '').toUpperCase()) : 'CASH BILL'}</div>${gst ? '<div class="s2">Authorised Signatory</div>' : ''}</div>
           </div>
         </div>
       </div>
