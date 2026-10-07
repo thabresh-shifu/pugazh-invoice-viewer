@@ -58,6 +58,51 @@
   .footer { margin-top: 18px; display: flex; justify-content: space-between; font-size: 9.5px; color: #9a94a8; }
   button { margin-top: 18px; background: #5A3A80; color: #fff; border: none; border-radius: 8px; padding: 10px 18px; font-size: 13px; cursor: pointer; }
   @media print { button { display: none; } body { background: #fff; padding: 0; } .card { box-shadow: none; } }
+
+  /* ---- Paper invoice (same look as the printed bill) ---- */
+  body.paper { background: #e9e9e9; padding: 8px 0 24px; overflow-x: hidden; }
+  #fit { transform-origin: top left; }
+  .sheet { width: 794px; background: #fff; color: #000; padding: 14px 16px 12px; margin: 0 auto; font-family: Helvetica, Arial, sans-serif; font-weight: 700; box-shadow: 0 1px 6px rgba(0,0,0,.25); }
+  .sheet .taxinv { text-align: right; font-size: 10px; margin-bottom: 2px; }
+  .frame { border: 1px solid #000; display: flex; flex-direction: column; }
+  .lh { display: flex; border-bottom: 1px solid #000; min-height: 92px; }
+  .lh .shopc { flex: 1; border-right: 1px solid #000; padding: 5px; display: flex; gap: 6px; }
+  .lh .shopc img.logo { width: 64px; height: 64px; object-fit: contain; }
+  .lh .shopc img.tamil { width: 95px; display: block; }
+  .lh .shopname { font-size: 16px; line-height: 1.15; }
+  .lh .t10 { font-size: 10px; line-height: 1.25; }
+  .lh .t105 { font-size: 10.5px; line-height: 1.25; }
+  .lh .custc { flex: 1; padding: 5px; }
+  .lh .custc .nm { font-size: 11px; }
+  .lh .custc .ad { font-size: 9.5px; }
+  .cashbill { font-size: 18px; align-self: center; }
+  .billrow { display: flex; border-bottom: 1px solid #000; padding: 3px 5px; font-size: 11px; }
+  .billrow div { flex: 1; } .billrow div.mid { flex: 0 0 auto; }
+  table.it { border-collapse: collapse; width: 100%; table-layout: fixed; font-size: 10px; }
+  table.it th { height: 24px; font-size: 9px; line-height: 1.1; border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 0 3px; font-weight: 700; background: #fff; text-transform: none; color: #000; white-space: normal; }
+  table.it td { height: 13.5px; padding: 0 3px; white-space: nowrap; overflow: hidden; border-bottom: none; font-size: 10px; }
+  table.it th, table.it td { border-left: none; border-right: 1px solid #000; }
+  table.it th:last-child, table.it td:last-child { border-right: none; }
+  table.it td.fill { height: 100%; padding: 0; }
+  table.it tr.spacer td { height: auto; }
+  .c { text-align: center; } .r { text-align: right; } .l { text-align: left; }
+  .wordsrow { display: flex; border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 3px 5px; font-size: 10px; }
+  .wordsrow .w { flex: 1; }
+  .foot { display: flex; align-items: flex-start; padding: 3px 4px 2px; gap: 6px; }
+  table.gb { border-collapse: collapse; width: 150px; font-size: 8px; }
+  table.gb th, table.gb td { border: 0.7px solid #000; padding: 1.5px 2px; background: #fff; color: #000; font-size: 8px; text-transform: none; white-space: nowrap; }
+  .box { border: 0.7px solid #000; height: 62px; padding: 3px; font-size: 7.5px; }
+  .box .bt { text-align: center; font-size: 8px; text-decoration: underline; margin-bottom: 2px; }
+  .box.upi { width: 76px; font-size: 8px; display: flex; flex-direction: column; justify-content: space-between; }
+  .box.upi .qr svg, .box.upi .qr img { width: 44px; height: 44px; display: block; }
+  .forname { flex: 1; height: 62px; display: flex; align-items: flex-end; justify-content: center; font-size: 10px; }
+  .tot { width: 155px; font-size: 9.5px; }
+  .tot .tr { display: flex; justify-content: space-between; padding: 1px 0; }
+  .tot .net { font-size: 11.5px; border-top: 0.6px solid #000; margin-top: 2px; padding-top: 2px; }
+  .pw { display: flex; justify-content: space-between; font-size: 7px; margin-top: 2px; }
+  .actions { text-align: center; margin: 14px 0 0; }
+  .actions a.pay { display: inline-block; background: #5A3A80; color: #fff; text-decoration: none; border-radius: 8px; padding: 10px 18px; font-size: 14px; margin: 0 6px; }
+  @media print { body.paper { background: #fff; padding: 0; } #fit { transform: none !important; } .sheet { box-shadow: none; } .actions { display: none; } }
 </style>
 </head>
 <body>
@@ -87,6 +132,136 @@
   const money = (v) => Number(v || 0).toFixed(2);
   const esc = (s) => String(s ?? '').replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
 
+
+  // ---- Paper-style rendering of a desktop bill's snapshot -----------------
+  // The numbers come pre-computed from the app (buildBillSnapshot in
+  // lib/printing/bill_pdf.dart); this only lays them out like the printed bill.
+  const dmy = (iso) => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || ''); return m ? `${m[3]}-${m[2]}-${m[1]}` : esc(iso); };
+  const qtyText = (v) => (Number(v) === Math.round(Number(v)) ? String(Math.round(Number(v))) : Number(v).toFixed(2));
+  const SLABS = [0, 5, 12, 18, 28];
+
+  function loadScript(src) {
+    return new Promise((res, rej) => { const el = document.createElement('script'); el.src = src; el.onload = res; el.onerror = rej; document.head.appendChild(el); });
+  }
+
+  async function renderSnapshot(sn) {
+    document.body.classList.add('paper');
+    const gst = sn.isGstBill !== false;
+    const lines = sn.lines || [];
+    const totalFree = lines.reduce((s, l) => s + Number(l.free || 0), 0);
+    const totalQty = lines.reduce((s, l) => s + Number(l.qty || 0), 0);
+
+    const cols = [
+      ['No', 5, 'c'], ['Item Name', 32, 'l'], ['HSN<br>Code', 11, 'c'], ['MRP', 9, 'r'], ['Qty', 7, 'c'],
+      ...(totalFree > 0 ? [['Free', 7, 'c']] : []),
+      ['Price', 10, 'r'], ['Disc.<br>%', 7, 'r'], ['Disc', 8, 'r'], ['C.Disc<br>%', 9, 'r'], ['C.Damt', 11, 'r'],
+      ...(gst ? [['GST<br>%', 6, 'c']] : []),
+      ['T.Price', 12, 'r'],
+    ];
+    const sum = cols.reduce((s, c) => s + c[1], 0);
+    const nz = (v, f) => (Number(v) === 0 ? '' : f(v));
+    const rowCells = (l, i) => [
+      i + 1, esc(l.name), esc(l.hsn), money(l.mrp), qtyText(l.qty),
+      ...(totalFree > 0 ? [Number(l.free) > 0 ? qtyText(l.free) : ''] : []),
+      money(l.price), nz(l.discPct, (v) => Number(v).toFixed(2)), nz(l.discAmt, money),
+      nz(l.cDiscPct, (v) => Number(v).toFixed(2)), nz(l.cDiscAmt, money),
+      ...(gst ? [Number(l.gstPct).toFixed(0)] : []),
+      money(l.taxable),
+    ];
+    const MIN_ROWS = 10;
+    const rows = lines.map((l, i) => `<tr>${rowCells(l, i).map((v, j) => `<td class="${cols[j][2]}">${v}</td>`).join('')}</tr>`).join('');
+    const blanks = Array.from({ length: Math.max(0, MIN_ROWS - lines.length) }, () => `<tr>${cols.map((c) => `<td>&nbsp;</td>`).join('')}</tr>`).join('');
+
+    const bySlab = {};
+    for (const l of lines) {
+      const slab = SLABS.includes(Number(l.gstPct)) ? Number(l.gstPct) : 0;
+      const p = bySlab[slab] || { taxable: 0, gst: 0 };
+      bySlab[slab] = { taxable: p.taxable + Number(l.taxable), gst: p.gst + (Number(l.taxable) * Number(l.gstPct)) / 100 };
+    }
+    let used = SLABS.filter((s) => (bySlab[s]?.taxable || 0) > 0);
+    if (!used.length) used = [5];
+    const tt = Object.values(bySlab).reduce((a, v) => ({ t: a.t + v.taxable, g: a.g + v.gst }), { t: 0, g: 0 });
+    const gstBox = gst ? `<table class="gb"><thead><tr><th class="l">GST %</th><th class="r">Taxable Amt</th><th class="r">CGST</th><th class="r">SGST</th></tr></thead><tbody>
+      ${used.map((s) => `<tr><td>${s}%</td><td class="r">${money(bySlab[s]?.taxable)}</td><td class="r">${money((bySlab[s]?.gst || 0) / 2)}</td><td class="r">${money((bySlab[s]?.gst || 0) / 2)}</td></tr>`).join('')}
+      <tr><th class="l">TOTAL</th><th class="r">${money(tt.t)}</th><th class="r">${money(tt.g / 2)}</th><th class="r">${money(tt.g / 2)}</th></tr></tbody></table>` : '';
+
+    const b = sn.shop.bank || {};
+    const bankLines = [b.accountNo && `AC/NO : ${b.accountNo}`, b.bankName && `Bank : ${b.bankName}`, b.ifsc && `IFSC : ${b.ifsc}`, b.branch && `Branch : ${b.branch}`].filter(Boolean);
+    const bankBox = gst && bankLines.length ? `<div class="box" style="width:108px"><div class="bt">Bank Details</div>${bankLines.map((l) => `<div>${esc(l)}</div>`).join('')}</div>` : '';
+    const upiBox = sn.upiPayload ? `<div class="box upi"><div>Scan &amp; Pay (UPI)</div><div class="qr" id="upiqr"></div></div>` : '';
+
+    const shopCell = gst ? `
+        <img class="logo" src="assets/invoice_logo.png" alt="" onerror="this.remove()" />
+        <div>
+          <img class="tamil" src="assets/invoice_header_tamil.png" alt="" onerror="this.remove()" />
+          <div class="shopname">${esc(sn.shop.name)}</div>
+          ${(sn.shop.addressLines || []).map((l) => `<div class="t10">${esc(l)}</div>`).join('')}
+          <div class="t105">${esc(sn.shop.mobile)}</div>
+          <div class="t105">${esc(sn.shop.gstin)}</div>
+        </div>` : `<div class="cashbill">CASH BILL</div>`;
+    const c = sn.customer || {};
+    const custCell = `
+        <div class="nm">To. M/s. ${esc(c.name)}</div>
+        ${(c.addressLines || []).map((l) => `<div class="ad">${esc(l)}</div>`).join('')}
+        ${gst ? `<div class="ad" style="margin-top:2px">Cell: ${esc(c.phone)}</div><div class="ad">GST: ${esc(c.gstin)}</div>` : ''}`;
+
+    document.getElementById('card').outerHTML = `
+    <div id="fit"><div class="sheet" id="sheet">
+      ${gst ? '<div class="taxinv">TAX INVOICE</div>' : ''}
+      <div class="frame">
+        <div class="lh"><div class="shopc">${shopCell}</div><div class="custc">${custCell}</div></div>
+        <div class="billrow"><div>Bill No. : ${esc(sn.billNo)}</div><div class="mid">Date: ${dmy(sn.date)}</div><div></div></div>
+        <table class="it">
+          <colgroup>${cols.map((c) => `<col style="width:${(c[1] / sum * 100).toFixed(3)}%">`).join('')}</colgroup>
+          <thead><tr>${cols.map((c) => `<th class="${c[2]}">${c[0]}</th>`).join('')}</tr></thead>
+          <tbody>${rows}${blanks}</tbody>
+        </table>
+        <div class="wordsrow"><div class="w">${esc(sn.words)}</div><div>Total Qty =&gt; ${qtyText(totalQty)}${totalFree > 0 ? ' + ' + qtyText(totalFree) + ' free' : ''}</div></div>
+        <div class="foot">
+          ${gstBox}${bankBox}${upiBox}
+          <div class="forname">${gst ? esc(sn.shop.footerName) : '<span style="font-size:13px">CASH BILL</span>'}</div>
+          <div class="tot">
+            <div class="tr"><span>Total Amount :</span><span>${money(sn.totalBeforeRounding)}</span></div>
+            <div class="tr"><span>Rounded Off :</span><span>${money(sn.roundOff)}</span></div>
+            <div class="tr net"><span>Net Amount :</span><span>${money(sn.netAmount)}</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="pw"><span>${POWERED_BY}</span></div>
+    </div>
+    <div class="actions">
+      ${sn.upiPayload ? `<a class="pay" href="${esc(sn.upiPayload)}">Pay ₹${money(sn.netAmount)} with UPI</a>` : ''}
+      <button onclick="window.print()">Print / Save as PDF</button>
+    </div></div>`;
+
+    document.title = `Invoice ${sn.billNo}`;
+    fitToScreen();
+    window.addEventListener('resize', fitToScreen);
+
+    // Same fixed-amount UPI link the printed bill's QR carries.
+    if (sn.upiPayload) {
+      try {
+        await loadScript('https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js');
+        const q = qrcode(0, 'M'); q.addData(sn.upiPayload); q.make();
+        document.getElementById('upiqr').innerHTML = q.createSvgTag({ cellSize: 2, margin: 0, scalable: true });
+      } catch (e) { const el = document.getElementById('upiqr'); if (el) el.textContent = ''; }
+    }
+  }
+
+  // The bill is laid out at its true paper width and scaled to fit the screen,
+  // so a phone shows the whole invoice exactly as printed (pinch to zoom in).
+  function fitToScreen() {
+    const fit = document.getElementById('fit'); if (!fit) return;
+    // clientWidth, not innerWidth: a page wider than the screen makes
+    // innerWidth report the content width on phones.
+    const vw = Math.min(document.documentElement.clientWidth, window.visualViewport ? window.visualViewport.width : Infinity);
+    const k = Math.min(1, vw / 794);
+    fit.style.transform = `scale(${k})`;
+    fit.style.width = '794px';
+    fit.style.marginLeft = `${Math.max(0, (vw - 794 * k) / 2)}px`;
+    fit.style.height = `${fit.firstElementChild.offsetHeight * k + 80}px`;
+  }
+
   async function load() {
     const orderId = new URLSearchParams(location.search).get('order');
     const state = document.getElementById('state');
@@ -103,7 +278,7 @@
         state.textContent = data.error || 'Could not load this invoice.';
         return;
       }
-      render(data);
+      if (data.snapshot) { await renderSnapshot(data.snapshot); } else { render(data); }
     } catch (e) {
       state.textContent = 'Could not load this invoice. Check your connection and try again.';
     }
